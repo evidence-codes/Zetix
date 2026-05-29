@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section id="catalog-upload">
+  <h2>Catalog Upload</h2>
+  <p class="muted">Paste products as JSON or CSV and push them to the Zetix API
+    (<code>POST /admin/catalog</code>). Use <em>full</em> to replace the catalog or
+    <em>delta</em> to upsert.</p>
+
+  {% if parse_error %}<div class="err">{{ parse_error }}</div>{% endif %}
+  {% if upload_result %}
+    {% if upload_result.error %}
+      <div class="err">{{ upload_result.error }}</div>
+    {% else %}
+      <div class="ok">
+        Pushed: job <code>{{ upload_result.data.job_id }}</code> —
+        indexed {{ upload_result.data.indexed_count }},
+        removed {{ upload_result.data.removed_count }}
+        (mode: {{ upload_result.data.mode }}).
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <form method="post" action="/catalog">
+    <div class="row">
+      <div>
+        <label for="store">Store</label>
+        <input id="store" name="store" value="{{ store }}" required />
+      </div>
+      <div>
+        <label for="mode">Mode</label>
+        <select id="mode" name="mode">
+          <option value="full">full (replace)</option>
+          <option value="delta">delta (upsert)</option>
+        </select>
+      </div>
+      <div>
+        <label for="fmt">Format</label>
+        <select id="fmt" name="fmt">
+          <option value="json">JSON</option>
+          <option value="csv">CSV</option>
+        </select>
+      </div>
+    </div>
+    <label for="data">Products (JSON array / object, or CSV with header row)</label>
+    <textarea id="data" name="data" placeholder='[{"id": "sku-1", "title": "...", "price": 9.99, "currency": "USD", "product_url": "https://...", "store": "{{ store }}"}]'></textarea>
+    <button type="submit">Push catalog</button>
+  </form>
+</section>
+
+<section id="index-status">
+  <h2>Index Status</h2>
+  <p class="muted">Live from <code>GET /admin/index/status?store={{ store }}</code>.</p>
+  {% if index_status.error %}
+    <div class="err">{{ index_status.error }}</div>
+  {% else %}
+    {% set s = index_status.data %}
+    <table>
+      <tr><th>Store</th><td>{{ s.store }}</td></tr>
+      <tr><th>Status</th><td><span class="badge">{{ s.status }}</span></td></tr>
+      <tr><th>Product count</th><td>{{ s.product_count }}</td></tr>
+      <tr><th>Last indexed at</th><td>{{ s.last_indexed_at or "—" }}</td></tr>
+    </table>
+  {% endif %}
+</section>
+
+<section id="search-logs">
+  <h2>Search Logs</h2>
+  <div class="stub">
+    <strong>Stub data.</strong> The API does not persist query vectors (ADR-0002)
+    and has no logs endpoint yet. These rows are placeholder metadata only
+    (no vectors), shown pending a real <code>GET /admin/search/logs</code> endpoint.
+  </div>
+  <table>
+    <thead>
+      <tr><th>Time</th><th>Store</th><th>Query id</th>
+          <th>Results</th><th>Top score</th><th>Latency (ms)</th></tr>
+    </thead>
+    <tbody>
+      {% for log in search_logs %}
+      <tr>
+        <td>{{ log.ts }}</td>
+        <td>{{ log.store }}</td>
+        <td><code>{{ log.query_id }}</code></td>
+        <td>{{ log.result_count }}</td>
+        <td>{{ "%.2f"|format(log.top_score) if log.top_score is not none else "—" }}</td>
+        <td>{{ "%.1f"|format(log.latency_ms) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endblock %}
