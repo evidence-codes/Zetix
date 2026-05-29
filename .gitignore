@@ -1,0 +1,33 @@
+# Mono-repo cross-tool orchestration artifacts (Make stamp files / bridges)
+.make/
+
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Build outputs (native tools own these inside each module)
+build/
+dist/
+*.aar
+*.ipa
+*.apk
+DerivedData/
+.gradle/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets / local env
+.env
+.env.local
+*.local
+
+# Personal Claude Code local settings
+.claude/settings.local.json

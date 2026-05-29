@@ -1,0 +1,32 @@
+# Zetix REST API — shared contract (the single source for server + apps + SDKs).
+# STUB scaffold (EPIC-0.5). Endpoints are fleshed out in EPIC-1 / EPIC-5.
+# Privacy invariant: search accepts a query VECTOR or an image; the on-device path
+# only ever transmits the vector (never the raw image). See NFR-S1/S2.
+openapi: 3.1.0
+info:
+  title: Zetix API
+  version: 0.0.0
+  description: Visual product search — server pipeline + fallback. See docs/Zetix_PRD_v1.0.docx.
+servers:
+  - url: https://api.zetix.example
+    description: TODO (EPIC-5)
+paths:
+  /search:
+    post:
+      summary: Ranked product search by query vector (or image, server-side path only)
+      description: FR-34, FR-06. Returns top-k products ranked by visual similarity.
+      responses:
+        "200":
+          description: TODO — define SearchResult schema in EPIC-1
+  /admin/catalog:
+    post:
+      summary: Catalog push — full replace or delta update (JSON/CSV)
+      description: FR-35. TODO — define in EPIC-1.
+      responses:
+        "202":
+          description: TODO
+components:
+  schemas:
+    # TODO (EPIC-1): Product, SearchQuery (512-dim vector), SearchResult, CatalogDelta
+    Placeholder:
+      type: object

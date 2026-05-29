@@ -1,0 +1,8 @@
+# SwiftFormat config for iOS app + SDK (apps/ios, packages/sdk-ios).
+# Invoked via `make ios-fmt` and CI.
+--swiftversion 5.9
+--indent 4
+--maxwidth 120
+--commas inline
+--trimwhitespace always
+--exclude .make,**/.build,**/DerivedData

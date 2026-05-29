@@ -1,0 +1,23 @@
+# Zetix pre-commit hooks. Install once with: pip install pre-commit && pre-commit install
+# Covers universal hygiene + Python (ruff). Kotlin (ktlint) and Swift (swiftformat)
+# require platform toolchains, so they run via `make fmt` / `make lint` and in CI
+# rather than as pre-commit hooks, to keep commits working on any machine.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
