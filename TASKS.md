@@ -29,7 +29,7 @@
 | EPIC | Title | Phase | Status |
 | --- | --- | --- | --- |
 | [EPIC-0](#epic-0--mono-repo-bootstrap--foundations) | Mono-repo bootstrap & foundations | Pre-1 | ✅ |
-| [EPIC-1](#epic-1--server-pipeline-phase-1) | Server pipeline | 1 | 🔴 |
+| [EPIC-1](#epic-1--server-pipeline-phase-1) | Server pipeline | 1 | 🟡 |
 | [EPIC-2](#epic-2--android-app--on-device-embedding-phase-2) | Android app + on-device embedding | 2 | 🔴 |
 | [EPIC-3](#epic-3--local-chromadb--sync-phase-3) | Local ChromaDB + sync | 3 | 🔴 |
 | [EPIC-4](#epic-4--ios-port-phase-4) | iOS port | 4 | 🔴 |
@@ -71,44 +71,54 @@ builders; stamp files in `.make/` fill the Bazel-shaped cross-language gaps. See
 ### 1.A Catalog ingestion
 | ID | Sub-task | Maps to | Status |
 | --- | --- | --- | --- |
-| 1.A.1 | Define product/catalog schema in PostgreSQL (metadata, store config, sync state) | — | 🔴 |
-| 1.A.2 | CSV ingestion adapter | Phase 1 scope | 🔴 |
-| 1.A.3 | JSON ingestion adapter | Phase 1 scope | 🔴 |
-| 1.A.4 | Shopify API ingestion adapter (API 2024-01+), abstracted behind adapter interface | Phase 1, NFR-C4 | 🔴 |
-| 1.A.5 | Object storage (S3-compatible) for product images + index snapshots | §7.2 | 🔴 |
+| 1.A.1 | Define product/catalog schema in PostgreSQL (metadata, store config, sync state) | — | 🟢 |
+| 1.A.2 | CSV ingestion adapter | Phase 1 scope | 🟢 |
+| 1.A.3 | JSON ingestion adapter | Phase 1 scope | 🟢 |
+| 1.A.4 | Shopify API ingestion adapter (API 2024-01+), abstracted behind adapter interface | Phase 1, NFR-C4 | 🟢 |
+| 1.A.5 | Object storage (S3-compatible) for product images + index snapshots | §7.2 | 🟢 |
+
+> Fleet: SQLAlchemy models (`db/`, no PII), CSV/JSON/Shopify adapters (`ingest/`), `ObjectStorage` (Local + S3) in `storage.py`, with tests. Utilities are built + tested but not yet wired into a live ingestion endpoint.
 
 ### 1.B Embedding & vector store
 | ID | Sub-task | Maps to | Status |
 | --- | --- | --- | --- |
-| 1.B.1 | OpenCLIP embedding service (GPU-accelerated on indexing path) | §7.2 | 🔴 |
-| 1.B.2 | Generate 512-dim embeddings for all catalog images | §7.3 | 🔴 |
-| 1.B.3 | ChromaDB server vector store + ANN cosine search | Phase 1 | 🔴 |
-| 1.B.4 | Index build job + status tracking | Phase 1 | 🔴 |
+| 1.B.1 | OpenCLIP embedding service (GPU-accelerated on indexing path) | §7.2 | 🟢 |
+| 1.B.2 | Generate 512-dim embeddings for all catalog images | §7.3 | 🟢 |
+| 1.B.3 | ChromaDB server vector store + ANN cosine search | Phase 1 | 🟢 |
+| 1.B.4 | Index build job + status tracking | Phase 1 | 🟡 |
+
+> Fleet: `OpenCLIPEmbeddingService` (`zetix_embedding/openclip.py`, ZETIX_EMBEDDER=openclip) — code-complete + lint-clean, but NOT runtime-verified here (torch not installed; its test skips). `ChromaVectorStore` (ZETIX_VECTOR_STORE=chroma) — verified end-to-end (chromadb installed; live /admin/catalog→/search passes). Index status endpoint works; async build job/webhook still pending (1.B.4).
 
 ### 1.C REST & admin API
 | ID | Sub-task | Maps to | Status |
 | --- | --- | --- | --- |
-| 1.C.1 | FastAPI app skeleton (Python 3.11+), Docker-deployable on 2-vCPU/4GB | NFR-C3 | 🔴 |
-| 1.C.2 | `POST /search`: accept base64 image **or** image URL → ranked product JSON | FR-34 | 🔴 |
-| 1.C.3 | Rank by similarity score; return top 10 | FR-06 | 🔴 |
-| 1.C.4 | Admin catalog push API: full replace + delta via JSON/CSV | FR-35 | 🔴 |
+| 1.C.1 | FastAPI app skeleton (Python 3.11+), Docker-deployable on 2-vCPU/4GB | NFR-C3 | 🟢 |
+| 1.C.2 | `POST /search`: accept vector **or** base64/URL image → ranked product JSON | FR-34 | 🟢 |
+| 1.C.3 | Rank by similarity score; return top 10 | FR-06 | 🟢 |
+| 1.C.4 | Admin catalog push API: full replace + delta via JSON/CSV | FR-35 | 🟢 |
 | 1.C.5 | TLS 1.3 enforcement | NFR-S3 | 🔴 |
-| 1.C.6 | GDPR/NDPA-compliant data model; consent gating for any PII | NFR-S6 | 🔴 |
+| 1.C.6 | GDPR/NDPA-compliant data model; consent gating for any PII | NFR-S6 | 🟡 |
+
+> `/search` and `/admin` verified with both backends (in-memory + chroma); vector not persisted (ADR-0002). 1.C.5 (TLS) is deployment/gateway-level — pending. 1.C.6: DB schema has no PII columns (done); consent gating not yet needed (no PII collected).
 
 ### 1.D Admin dashboard
 | ID | Sub-task | Maps to | Status |
 | --- | --- | --- | --- |
-| 1.D.1 | Catalog upload UI | Phase 1 | 🔴 |
-| 1.D.2 | Index status view | Phase 1 | 🔴 |
-| 1.D.3 | Search logs view | Phase 1 | 🔴 |
+| 1.D.1 | Catalog upload UI | Phase 1 | 🟢 |
+| 1.D.2 | Index status view | Phase 1 | 🟢 |
+| 1.D.3 | Search logs view | Phase 1 | 🟡 |
+
+> Fleet: standalone FastAPI+Jinja2 dashboard (`server/admin-dashboard/`, tests pass). Search-logs view is a labelled stub pending a logs endpoint (consistent with ADR-0002 — no vectors stored).
 
 ### 1.E Search-quality evaluation (gates M1)
 | ID | Sub-task | Maps to | Status |
 | --- | --- | --- | --- |
 | 1.E.1 | Build 10k-product test set + labelled query set | §3.1 | 🔴 |
-| 1.E.2 | Eval harness computing Top-3 accuracy | §3.1 | 🔴 |
-| 1.E.3 | Per-category quality breakdown (niche-category risk check) | §9 | 🔴 |
+| 1.E.2 | Eval harness computing Top-3 accuracy | §3.1 | 🟢 |
+| 1.E.3 | Per-category quality breakdown (niche-category risk check) | §9 | 🟢 |
 | 1.E.4 | Hit Top-3 accuracy > 80% (M1 DoD) | M1 | 🔴 |
+
+> Fleet: harness (`models/eval/`, `make eval`) computes Top-1/3/5 + per-category through the real /admin/catalog→/search seams. Runs on a SYNTHETIC set (Top-3=100% by construction with the stub embedder). 1.E.1 (real 10k labelled set) and 1.E.4 (the actual >80% bar) require ZETIX_EMBEDDER=openclip + real data — **M1 is NOT yet met.**
 
 ---
 
@@ -307,7 +317,7 @@ Each blocks or shapes downstream EPICs. See [`GAP_ANALYSIS.md`](./GAP_ANALYSIS.m
 | D-4 (OQ-4) | SDK pricing model | EPIC-5 / business | 🔴 |
 | D-5 (OQ-5) | White-label per store vs single multi-store app | EPIC-2 product shape | 🔴 |
 | D-6 (OQ-6) | Fine-tuning strategy (shared base + adapters vs per-vertical) | models pipeline | 🔴 |
-| D-7 (OQ-7) | Server fallback vector retention policy (duration/format/ownership) | EPIC-1 data model | 🔴 |
+| D-7 (OQ-7) | Server fallback vector retention → **do not store** ([ADR-0002](./docs/adr/0002-no-retention-of-fallback-vectors.md)) | EPIC-1 data model | ✅ |
 
 ---
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Zetix Admin Dashboard{% endblock %}</title>
+  <style>
+    :root { --fg: #1a1a1a; --muted: #666; --line: #ddd; --accent: #2b6cb0; --warn: #b7791f; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--fg); margin: 0; line-height: 1.5; background: #fafafa;
+    }
+    header { background: #fff; border-bottom: 1px solid var(--line); padding: 1rem 1.5rem; }
+    header h1 { margin: 0; font-size: 1.25rem; }
+    header .api { color: var(--muted); font-size: 0.85rem; }
+    main { max-width: 880px; margin: 0 auto; padding: 1.5rem; }
+    section {
+      background: #fff; border: 1px solid var(--line); border-radius: 8px;
+      padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    section h2 { margin-top: 0; font-size: 1.05rem; }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0 0.15rem; }
+    input, select, textarea {
+      font: inherit; padding: 0.4rem 0.5rem; border: 1px solid var(--line);
+      border-radius: 4px; width: 100%;
+    }
+    textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 9rem; }
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .row > div { flex: 1 1 8rem; }
+    button {
+      font: inherit; margin-top: 0.75rem; padding: 0.45rem 1rem; cursor: pointer;
+      background: var(--accent); color: #fff; border: 0; border-radius: 4px;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; }
+    .err { color: #c53030; background: #fff5f5; border: 1px solid #feb2b2;
+           border-radius: 4px; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
+    .ok { color: #276749; background: #f0fff4; border: 1px solid #9ae6b4;
+          border-radius: 4px; padding: 0.5rem 0.75rem; margin-top: 0.5rem; }
+    .stub { color: var(--warn); background: #fffaf0; border: 1px solid #fbd38d;
+            border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem; }
+    .muted { color: var(--muted); }
+    .badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px;
+             font-size: 0.8rem; background: #edf2f7; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Zetix Admin Dashboard</h1>
+    <div class="api">API: {{ api_url }}</div>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

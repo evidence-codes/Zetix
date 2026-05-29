@@ -29,8 +29,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: make server-lint
       - run: make server-build
+      - run: make server-lint
       - run: make server-test
 
   eval:
@@ -41,6 +41,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # The eval harness drives the API in-process via FastAPI TestClient, so it needs
+      # the server package plus httpx (the [dev] extra provides it).
+      - run: pip install -e "./server[dev]"
       - run: make eval
 
   android:

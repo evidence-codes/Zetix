@@ -119,6 +119,8 @@ make ios-integration-test   # cross-edge: brings up server + converts model firs
 
 ## Architecture
 
+![Zetix architecture — on-device query hot path (camera → preprocess → 512-dim embedding → local vector index → top-k in <300ms), server-side catalog indexing/sync/fallback, and privacy-preserving fallback that sends the vector only, never the image](docs/assets/architecture-diagram.png)
+
 ### On-Device Path (the query hot path)
 
 1. User opens camera, frames a product.

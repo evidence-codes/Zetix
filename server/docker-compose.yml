@@ -1,0 +1,33 @@
+# Local dev stack for the Zetix server (Phase 1 / EPIC-1).
+# Postgres is provisioned for the catalog metadata DB (sub-task 1.A.1); the foundation
+# API runs on in-memory stores and does not yet require it.
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ZETIX_DEFAULT_TOP_K: "10"
+      # The app composes its DB URL from the POSTGRES_* vars once DB wiring lands
+      # (EPIC-1, 1.A.1). No credentials are committed; override locally via a
+      # git-ignored .env file.
+      POSTGRES_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER:-zetix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zetix}
+      POSTGRES_DB: ${POSTGRES_DB:-zetix}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-zetix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zetix}
+      POSTGRES_DB: ${POSTGRES_DB:-zetix}
+    ports:
+      - "5432:5432"
+    volumes:
+      - zetix_pg:/var/lib/postgresql/data
+
+volumes:
+  zetix_pg:
