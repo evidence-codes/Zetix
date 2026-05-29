@@ -24,7 +24,7 @@
 
 | Area | Total | 🔴 | 🟡 | 🟢 | ✅ |
 | --- | --- | --- | --- | --- | --- |
-| Functional Requirements | 26 | 26 | 0 | 0 | 0 |
+| Functional Requirements | 26 | 23 | 3 | 0 | 0 |
 | Non-Functional Requirements | 24 | 24 | 0 | 0 | 0 |
 | Phase deliverables | 5 phases | 5 | 0 | 0 | 0 |
 | Milestones | 6 | 6 | 0 | 0 | 0 |
@@ -45,7 +45,7 @@
 | FR-03 | Image embedding generated entirely on-device; raw image never leaves device | P0 | 2 | 🔴 |
 | FR-04 | Local ChromaDB queried first; server queried only on miss / low confidence | P0 | 3 | 🔴 |
 | FR-05 | Search returns results in < 300ms on a mid-range device (local path) | P0 | 3 | 🔴 |
-| FR-06 | Results ranked by visual similarity score; top 10 shown | P0 | 1 | 🔴 |
+| FR-06 | Results ranked by visual similarity score; top 10 shown | P0 | 1 | 🟡 |
 | FR-07 | Each result shows image, name, price, availability, store name | P0 | 2 | 🔴 |
 | FR-08 | Tapping a result opens the product page (deep link / web view) | P0 | 2 | 🔴 |
 | FR-09 | User can crop / focus the query image before submitting search | P1 | 2 | 🔴 |
@@ -71,8 +71,8 @@
 | FR-31 | iOS SDK exposes an equivalent SwiftUI View and UIViewController | P0 | 5 | 🔴 |
 | FR-32 | SDK accepts a store API key and catalog namespace at init | P0 | 5 | 🔴 |
 | FR-33 | SDK emits search result events; host app handles navigation/display | P0 | 5 | 🔴 |
-| FR-34 | REST API accepts base64 image or image URL; returns ranked product JSON | P0 | 1 | 🔴 |
-| FR-35 | Admin API allows catalog push: full replace or delta via JSON/CSV | P0 | 1 | 🔴 |
+| FR-34 | REST API accepts base64 image or image URL; returns ranked product JSON | P0 | 1 | 🟡 |
+| FR-35 | Admin API allows catalog push: full replace or delta via JSON/CSV | P0 | 1 | 🟡 |
 | FR-36 | Per-store webhook fires on index rebuild completion | P1 | 5 | 🔴 |
 | FR-37 | SDK supports custom result-card theming (colours, fonts, layout) | P2 | 5 | 🔴 |
 
