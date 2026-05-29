@@ -1,13 +1,34 @@
-# server — FastAPI service (api), CLIP embedding service, admin dashboard. Phase 1 / EPIC-1.
-# Native tool: Python toolchain (uv/poetry, pytest, ruff) + Docker Compose.
-# Replace the placeholder echoes below as EPIC-1 lands.
+# server — FastAPI service (api) + embedding service. Phase 1 / EPIC-1.
+# Native tool: Python toolchain (pip/uv, pytest, ruff) + Docker Compose.
+# The root Makefile delegates `make server-*` here.
 .PHONY: build test lint fmt up down bootstrap clean
 
-build:     ; @echo "[server] build — not implemented yet (EPIC-1)"          # -> uv sync / build images
-test:      ; @echo "[server] test — not implemented yet (EPIC-1)"           # -> pytest
-lint:      ; @echo "[server] lint — not implemented yet (EPIC-1)"           # -> ruff check .
-fmt:       ; @echo "[server] fmt — not implemented yet (EPIC-1)"            # -> ruff format .
-up:        ; @echo "[server] up — not implemented yet (EPIC-1)"             # -> docker compose up -d
-down:      ; @echo "[server] down — not implemented yet (EPIC-1)"           # -> docker compose down
-bootstrap: ; @echo "[server] bootstrap — not implemented yet (EPIC-1)"      # -> create venv, install deps
-clean:     ; @echo "[server] clean — nothing to clean yet"
+# Prefer the project venv if present, else the ambient python (e.g. CI).
+VENV := .venv
+PY := $(if $(wildcard $(VENV)/bin/python),$(VENV)/bin/python,python3)
+
+bootstrap:  ## Create a local venv and install dev deps
+	python3 -m venv $(VENV)
+	$(VENV)/bin/python -m pip install -U pip
+	$(VENV)/bin/python -m pip install -e ".[dev]"
+
+build:  ## Install the package + dev/test deps
+	$(PY) -m pip install -e ".[dev]"
+
+test:  ## Run the test suite
+	$(PY) -m pytest -q
+
+lint:  ## Lint
+	$(PY) -m ruff check .
+
+fmt:  ## Auto-format
+	$(PY) -m ruff format .
+
+up:  ## Start API + Postgres (background)
+	docker compose up -d --build
+
+down:  ## Stop the stack
+	docker compose down
+
+clean:  ## Remove caches and build artifacts
+	rm -rf .pytest_cache .ruff_cache build dist **/*.egg-info
