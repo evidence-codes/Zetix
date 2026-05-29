@@ -162,7 +162,7 @@ are tracked here and surfaced as decision tasks in [`TASKS.md`](./TASKS.md).
 | OQ-4 | SDK pricing model: per-query, flat monthly, or tiered by catalog size? | Phase 5 / business |
 | OQ-5 | Consumer app white-labelled per store, or single Zetix-branded multi-store app? | Phase 2 product shape |
 | OQ-6 | Fine-tuning strategy: shared base + per-store adapters, or separate models per vertical? | Phase 2b / model pipeline |
-| OQ-7 | Data retention policy for server-side fallback vectors: how long, what format, who owns? | Phase 1 data model, compliance |
+| OQ-7 | ~~Data retention policy for server-side fallback vectors~~ — **RESOLVED: do not store** ([ADR-0002](./docs/adr/0002-no-retention-of-fallback-vectors.md)) | Phase 1 data model, compliance |
 | OQ-8 | ~~Mono-repo orchestration tool~~ — **RESOLVED: Make as coarse graph** ([ADR-0001](./docs/adr/0001-mono-repo-orchestration-make.md)) | EPIC-0 (unblocked) |
 
 ---

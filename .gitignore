@@ -29,5 +29,6 @@ venv/
 .env.local
 *.local
 
-# Personal Claude Code local settings
+# Personal Claude Code local settings + agent worktrees
 .claude/settings.local.json
+.claude/worktrees/

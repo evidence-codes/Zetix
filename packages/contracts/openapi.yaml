@@ -1,32 +1,210 @@
 # Zetix REST API — shared contract (the single source for server + apps + SDKs).
-# STUB scaffold (EPIC-0.5). Endpoints are fleshed out in EPIC-1 / EPIC-5.
-# Privacy invariant: search accepts a query VECTOR or an image; the on-device path
-# only ever transmits the vector (never the raw image). See NFR-S1/S2.
+# Phase 1 surface (EPIC-1). Privacy invariants:
+#   - The on-device path transmits only the 512-dim query VECTOR, never the raw image
+#     (NFR-S1/S2). The image-based search path is server-side only (e.g. admin/testing).
+#   - Fallback query vectors are NOT persisted (ADR-0002 / D-7).
 openapi: 3.1.0
 info:
   title: Zetix API
-  version: 0.0.0
-  description: Visual product search — server pipeline + fallback. See docs/Zetix_PRD_v1.0.docx.
+  version: 0.1.0
+  description: >
+    Visual product search — server pipeline + fallback.
+    See docs/Zetix_PRD_v1.0.docx and docs/adr/.
 servers:
-  - url: https://api.zetix.example
-    description: TODO (EPIC-5)
+  - url: http://localhost:8000
+    description: Local development
+
 paths:
-  /search:
-    post:
-      summary: Ranked product search by query vector (or image, server-side path only)
-      description: FR-34, FR-06. Returns top-k products ranked by visual similarity.
+  /health:
+    get:
+      summary: Liveness/readiness probe
+      operationId: health
       responses:
         "200":
-          description: TODO — define SearchResult schema in EPIC-1
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /search:
+    post:
+      summary: Ranked product search (FR-34, FR-06)
+      description: >
+        Accepts a 512-dim query vector (on-device fallback path) OR an image
+        (server-side path only). Returns the top-k products ranked by visual
+        similarity. The request body is processed in memory and never persisted
+        (ADR-0002).
+      operationId: search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: Ranked matches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+        "422":
+          description: Invalid request (e.g. wrong vector dimension)
+
   /admin/catalog:
     post:
-      summary: Catalog push — full replace or delta update (JSON/CSV)
-      description: FR-35. TODO — define in EPIC-1.
+      summary: Catalog push — full replace or delta update (FR-35)
+      operationId: pushCatalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CatalogPushRequest"
       responses:
         "202":
-          description: TODO
+          description: Accepted for indexing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogPushResponse"
+
+  /admin/index/status:
+    get:
+      summary: Index status for a store namespace
+      operationId: indexStatus
+      parameters:
+        - name: store
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Current index status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndexStatus"
+
 components:
   schemas:
-    # TODO (EPIC-1): Product, SearchQuery (512-dim vector), SearchResult, CatalogDelta
-    Placeholder:
+    Health:
       type: object
+      required: [status, version]
+      properties:
+        status: { type: string, enum: [ok] }
+        version: { type: string }
+
+    Availability:
+      type: string
+      enum: [in_stock, out_of_stock, preorder, unknown]
+
+    Product:
+      type: object
+      required: [id, title, price, currency, product_url, store]
+      properties:
+        id: { type: string, description: Store-unique product id }
+        title: { type: string }
+        description: { type: string }
+        price: { type: number, format: float }
+        currency: { type: string, description: ISO 4217, example: USD }
+        availability: { $ref: "#/components/schemas/Availability" }
+        image_url: { type: string, format: uri }
+        product_url: { type: string, format: uri, description: Deep link / web URL }
+        store: { type: string, description: Store namespace }
+        category: { type: string }
+        attributes:
+          type: object
+          additionalProperties: true
+
+    ScoredProduct:
+      type: object
+      required: [product, score]
+      properties:
+        product: { $ref: "#/components/schemas/Product" }
+        score:
+          type: number
+          format: float
+          description: Cosine similarity in [0, 1]
+
+    SearchFilters:
+      type: object
+      properties:
+        category: { type: string }
+        price_min: { type: number, format: float }
+        price_max: { type: number, format: float }
+        in_stock_only: { type: boolean, default: false }
+
+    SearchRequest:
+      type: object
+      required: [store]
+      description: >
+        Provide exactly one of `vector` (preferred, on-device path) or `image`
+        (server-side path only). `vector` must have EMBEDDING_DIM (512) elements.
+      properties:
+        store: { type: string, description: Store namespace }
+        vector:
+          type: array
+          items: { type: number, format: float }
+          description: 512-dim query embedding (preferred path)
+        image:
+          $ref: "#/components/schemas/ImageInput"
+        top_k: { type: integer, default: 10, minimum: 1, maximum: 100 }
+        filters: { $ref: "#/components/schemas/SearchFilters" }
+
+    ImageInput:
+      type: object
+      description: Server-side-only image input. Mutually exclusive with vector.
+      properties:
+        base64: { type: string }
+        url: { type: string, format: uri }
+
+    SearchResponse:
+      type: object
+      required: [results, query_id, latency_ms]
+      properties:
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/ScoredProduct" }
+        query_id:
+          type: string
+          description: Ephemeral request-trace id; NOT a key into stored data (ADR-0002)
+        latency_ms: { type: number, format: float }
+
+    CatalogPushMode:
+      type: string
+      enum: [full, delta]
+
+    CatalogPushRequest:
+      type: object
+      required: [store, mode, products]
+      properties:
+        store: { type: string }
+        mode: { $ref: "#/components/schemas/CatalogPushMode" }
+        products:
+          type: array
+          items: { $ref: "#/components/schemas/Product" }
+        removed_ids:
+          type: array
+          items: { type: string }
+          description: Product ids to remove (delta mode only)
+
+    CatalogPushResponse:
+      type: object
+      required: [job_id, accepted, mode, indexed_count]
+      properties:
+        job_id: { type: string }
+        accepted: { type: boolean }
+        mode: { $ref: "#/components/schemas/CatalogPushMode" }
+        indexed_count: { type: integer }
+        removed_count: { type: integer }
+
+    IndexStatus:
+      type: object
+      required: [store, product_count, status]
+      properties:
+        store: { type: string }
+        product_count: { type: integer }
+        last_indexed_at: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [empty, indexing, ready] }
