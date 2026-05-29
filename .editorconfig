@@ -1,0 +1,37 @@
+# Zetix mono-repo — shared editor settings across all ecosystems.
+# ktlint reads this file directly; SwiftFormat/ruff are configured alongside.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Kotlin (Android app + SDK) — ktlint
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 120
+ktlint_code_style = ktlint_official
+
+# Swift (iOS app + SDK)
+[*.swift]
+indent_size = 4
+
+# Python (server + models)
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+# Data / docs
+[*.{yml,yaml,json,md}]
+indent_size = 2
+
+# Make requires real tabs
+[{Makefile,*.mk}]
+indent_style = tab
+
+[*.gitkeep]
+insert_final_newline = false

@@ -1,0 +1,78 @@
+name: CI
+
+# Coarse matrix across the mono-repo's ecosystems. Every job drives the Make
+# command surface, so CI mirrors local `make` exactly. Jobs run on the runner that
+# matches each native toolchain; today they exercise placeholder targets and turn
+# real as each phase's builder is wired (EPIC-1+). See docs/adr/0001-...md
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: contracts (shared spine)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make contracts
+
+  server:
+    name: server (python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: make server-lint
+      - run: make server-build
+      - run: make server-test
+
+  eval:
+    name: eval (search quality — gates M1)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: make eval
+
+  android:
+    name: android (kotlin)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: make android-lint
+      - run: make android-build
+      - run: make android-test
+
+  ios:
+    name: ios (swift)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make ios-lint
+      - run: make ios-build
+      - run: make ios-test
+
+  sdk:
+    name: sdk (aar + swift package)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: make sdk-build
+      - run: make sdk-test
